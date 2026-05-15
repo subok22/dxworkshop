@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Auth helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Task Validation
+    function isValidTask(data) {
+      return data.problem is string && data.problem.size() <= 2000 &&
+             data.goal is string && data.goal.size() <= 2000 &&
+             data.solution is string && data.solution.size() <= 2000 &&
+             data.requirements is string && data.requirements.size() <= 2000 &&
+             data.challengeName is string && data.challengeName.size() <= 200 &&
+             data.authorName is string && data.authorName.size() <= 100 &&
+             data.likes is number && data.likes >= 0 &&
+             data.authorId == request.auth.uid &&
+             data.createdAt == request.time;
+    }
+
+    match /tasks/{taskId} {
+      allow read: if true; 
+      
+      allow create: if isSignedIn() && 
+                       isValidId(taskId) && 
+                       isValidTask(incoming()) &&
+                       incoming().likes == 0;
+
+      allow update: if isSignedIn() && (
+        // Action: Like (Anyone signed in, including anonymous)
+        (incoming().diff(existing()).affectedKeys().hasOnly(['likes']) && 
+         incoming().likes == existing().likes + 1) ||
+        // Action: Edit (Only author)
+        (existing().authorId == request.auth.uid && 
+         isValidTask(incoming()))
+      );
+
+      allow delete: if isSignedIn() && existing().authorId == request.auth.uid;
+    }
+  }
+}

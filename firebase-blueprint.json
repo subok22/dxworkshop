@@ -1,0 +1,55 @@
+{
+  "entities": {
+    "Task": {
+      "title": "DX Task",
+      "description": "A digital transformation challenge proposal.",
+      "type": "object",
+      "properties": {
+        "problem": {
+          "type": "string",
+          "description": "AS-IS: Current situation and problem definition."
+        },
+        "goal": {
+          "type": "string",
+          "description": "TO-BE: Ideal state/Goal."
+        },
+        "solution": {
+          "type": "string",
+          "description": "Proposed solution via DX."
+        },
+        "requirements": {
+          "type": "string",
+          "description": "Required resources (data, tools, etc.)."
+        },
+        "challengeName": {
+          "type": "string",
+          "description": "AI-generated name for the challenge."
+        },
+        "likes": {
+          "type": "number",
+          "description": "Number of likes received."
+        },
+        "authorName": {
+          "type": "string",
+          "description": "Display name of the author."
+        },
+        "authorId": {
+          "type": "string",
+          "description": "UID of the author."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp."
+        }
+      },
+      "required": ["problem", "goal", "solution", "requirements", "challengeName", "likes", "authorId", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Collection of DX challenge tasks."
+    }
+  }
+}
